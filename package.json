@@ -1,0 +1,9 @@
+{
+    "name": "@gladiolus/rope",
+    "author": "lopo<lopo@zju.edu.cn>",
+    "description": "solution for communication between multiple pages (same origin or non-same origin)",
+    "packageManager": "yarn@3.6.4",
+    "devDependencies": {
+        "tsup": "^7.2.0"
+    }
+}
