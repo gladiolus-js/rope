@@ -15,7 +15,8 @@
         "baseUrl": "."
     },
     "include": [
+        "src/**/*.ts",
         "tsup.config.ts",
-        "src/**/*.ts"
+        "__test__/**/*.ts",
     ]
 }
