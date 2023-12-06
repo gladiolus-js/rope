@@ -1,7 +1,19 @@
 /**
+ * The id of a rope client, which is unique in the rope server it is connected to
+ *
+ * Aliased for semantic purposes, to distinguish it from plain string.
+ */
+type RopeClientId = string
+
+/**
+ * The target of a RopeEvent, which is either a client id or `null` for broadcast events
+ */
+type RopeEventTarget = RopeClientId | null
+
+/**
  * The strategy to take when there is already a connection with the same identifier
  *
- * - `respect`: respect the existing connection and ignore the new one (default)
+ * - `respect`: respect the existing connection and ignore the new one
  * - `plunder`: disconnect the existing connection and replace it with the new one
  */
 type RopeClientStrategy = 'respect' | 'plunder'
@@ -11,16 +23,48 @@ type RopeClientStrategy = 'respect' | 'plunder'
  *
  * This is more for constraint purposes, as the actual clients are implemented in the subclasses.
  */
-abstract class RopeClient {
+abstract class RopeClient<MessageIn = unknown, MessageOut = MessageIn> {
+    /**
+     * The id of the client, which is unique in the rope server it is connected to
+     */
+    public readonly id: string
+
     /**
      * doc at {@link RopeClientStrategy}
      */
-    abstract strategy: RopeClientStrategy
+    public readonly strategy: RopeClientStrategy
 
-    // TODO: more segments to be added
+    /**
+     * The handler to handle incoming messages.
+     * @protected
+     */
+    protected handler: ((ev: MessageIn) => void) | null = null
+
+    /**
+     * Register a handler to handle incoming messages. If `null` is passed, the handler will be unregistered.
+     * @param handler the handler to handle incoming messages
+     */
+    public handle(handler: ((ev: MessageIn) => void) | null) {
+        this.handler = handler
+    }
+
+    protected constructor(id: string, strategy: RopeClientStrategy, handler: ((ev: MessageIn) => void) | null = null) {
+        this.id = id
+        this.strategy = strategy
+        this.handler = handler
+    }
+
+    /**
+     * Send a message to the target.
+     * @param message the message to send
+     * @param to the target of the message, `null` for broadcast
+     */
+    public abstract send(message: MessageOut, to: RopeEventTarget): void
 }
 
 export type {
+    RopeClientId,
+    RopeEventTarget,
     RopeClientStrategy
 }
 
