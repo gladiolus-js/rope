@@ -35,22 +35,22 @@ abstract class RopeEvent<InnerMessage = unknown> {
     /**
      * The name of the event
      */
-    protected readonly evName: RopeEventName
+    public readonly evName: RopeEventName
     /**
      * The id of the creator of the event
      */
-    protected readonly sender: RopeClientId
+    public readonly sender: RopeClientId
     /**
      * The id of the target of the event, `null` if it is a broadcast event
      * @default null
      */
-    protected readonly target: RopeEventTarget
+    public readonly target: RopeEventTarget
 
     /**
      * The message in the event, `null` if there is no message
      * @default null
      */
-    protected readonly message: InnerMessage
+    public readonly message: InnerMessage
 
     protected constructor(evName: RopeEventName, sender: RopeClientId, target: RopeEventTarget, message: InnerMessage) {
         this.evName = evName
