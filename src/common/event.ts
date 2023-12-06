@@ -1,12 +1,19 @@
+import { RopeClientId } from "./client";
+
 type RopeEventName = 'connect' | 'disconnect' | 'message'
+
+/**
+ * The target of a RopeEvent, which is either a client id or `null` for broadcast events
+ */
+type RopeEventTarget = RopeClientId | null
 
 /**
  * An object that represents a RopeEvent
  */
 type RopeEventObject<MessagePayload = unknown> = {
     evName: RopeEventName
-    causer: string
-    receiver: string | null
+    sender: RopeClientId
+    target: RopeEventTarget
     message: MessagePayload
 }
 
@@ -33,25 +40,34 @@ abstract class RopeEvent<InnerMessage = unknown> {
     /**
      * The name of the event
      */
-    abstract readonly evName: RopeEventName
+    protected readonly evName: RopeEventName
     /**
      * The id of the creator of the event
      */
-    abstract readonly causer: string
+    protected readonly sender: RopeClientId
     /**
-     * The id of the receiver of the event, `null` if it is a broadcast event
+     * The id of the target of the event, `null` if it is a broadcast event
+     * @default null
      */
-    abstract readonly receiver: string | null
+    protected readonly target: RopeEventTarget
 
     /**
      * The message in the event, `null` if there is no message
+     * @default null
      */
-    abstract readonly message: InnerMessage
+    protected readonly message: InnerMessage
+
+    protected constructor(evName: RopeEventName, sender: RopeClientId, target: RopeEventTarget, message: InnerMessage) {
+        this.evName = evName
+        this.sender = sender
+        this.target = target
+        this.message = message
+    }
 
     /**
      * Create a RopeEvent from a json object
      */
-    static fromJson<InnerMessage>(_from: IntoRopeEvent<InnerMessage>): RopeEvent<InnerMessage> {
+    public static fromJson<InnerMessage>(_from: IntoRopeEvent<InnerMessage>): RopeEvent<InnerMessage> {
         // TODO: maybe use a factory pattern here?
         throw new Error("This method is abstract and should be implemented in the subclass.")
     }
@@ -59,11 +75,11 @@ abstract class RopeEvent<InnerMessage = unknown> {
     /**
      * Convert the RopeEvent to a json object
      */
-    toJson(): FromRopeEvent<InnerMessage> {
+    public toJson(): FromRopeEvent<InnerMessage> {
         return {
             evName: this.evName,
-            causer: this.causer,
-            receiver: this.receiver,
+            sender: this.sender,
+            target: this.target,
             message: this.message,
         }
     }
@@ -73,14 +89,8 @@ abstract class RopeEvent<InnerMessage = unknown> {
  * Fired when a client has connected
  */
 class REvConnect extends RopeEvent<null> {
-    readonly evName = 'connect'
-    readonly causer: string
-    readonly receiver = null
-    readonly message = null
-
-    constructor(causer: string) {
-        super()
-        this.causer = causer
+    constructor(sender: RopeClientId) {
+        super('connect', sender, null, null)
     }
 }
 
@@ -88,14 +98,8 @@ class REvConnect extends RopeEvent<null> {
  * Fired when a client has disconnected
  */
 class REvDisconnect extends RopeEvent<null> {
-    readonly evName = 'disconnect'
-    readonly causer: string
-    readonly receiver = null
-    readonly message = null
-
-    constructor(causer: string) {
-        super()
-        this.causer = causer
+    constructor(sender: RopeClientId) {
+        super('disconnect', sender, null, null)
     }
 }
 
@@ -103,16 +107,8 @@ class REvDisconnect extends RopeEvent<null> {
  * Fired when a client has sent a message
  */
 class REvMessage<InnerMessage = unknown> extends RopeEvent<InnerMessage> {
-    readonly evName = 'message'
-    readonly causer: string
-    readonly receiver: string | null
-    readonly message: InnerMessage
-
-    constructor(causer: string, message: InnerMessage, receiver: string | null = null) {
-        super()
-        this.causer = causer
-        this.receiver = receiver
-        this.message = message
+    constructor(sender: RopeClientId, message: InnerMessage, target: RopeEventTarget = null) {
+        super('message', sender, target, message)
     }
 }
 
