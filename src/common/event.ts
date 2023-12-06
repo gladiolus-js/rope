@@ -4,6 +4,8 @@ type RopeEventName = 'message'
 
 /**
  * An object that represents a RopeEvent
+ *
+ * consider `FromRopeEvent` / `IntoRopeEvent` for semantic usage
  */
 type RopeEventObject<MessagePayload = unknown> = {
     evName: RopeEventName
@@ -94,6 +96,7 @@ class REvMessage<InnerMessage = unknown> extends RopeEvent<InnerMessage> {
 
 export type {
     RopeEventName,
+    RopeEventObject,
     FromRopeEvent,
     IntoRopeEvent,
 }
