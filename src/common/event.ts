@@ -1,11 +1,6 @@
-import { RopeClientId } from "./client";
+import { RopeClientId, RopeEventTarget } from "./client";
 
-type RopeEventName = 'connect' | 'disconnect' | 'message'
-
-/**
- * The target of a RopeEvent, which is either a client id or `null` for broadcast events
- */
-type RopeEventTarget = RopeClientId | null
+type RopeEventName = 'message'
 
 /**
  * An object that represents a RopeEvent
@@ -85,26 +80,11 @@ abstract class RopeEvent<InnerMessage = unknown> {
     }
 }
 
-/**
- * Fired when a client has connected
- */
-class REvConnect extends RopeEvent<null> {
-    constructor(sender: RopeClientId) {
-        super('connect', sender, null, null)
-    }
-}
+// ========== ========== ↑  Declarations  ↑ ========== ==========
+// ========== ========== ↓ Implementations ↓ ========== ==========
 
 /**
- * Fired when a client has disconnected
- */
-class REvDisconnect extends RopeEvent<null> {
-    constructor(sender: RopeClientId) {
-        super('disconnect', sender, null, null)
-    }
-}
-
-/**
- * Fired when a client has sent a message
+ * Represents a message packet
  */
 class REvMessage<InnerMessage = unknown> extends RopeEvent<InnerMessage> {
     constructor(sender: RopeClientId, message: InnerMessage, target: RopeEventTarget = null) {
@@ -120,7 +100,5 @@ export type {
 
 export {
     RopeEvent,
-    REvConnect,
-    REvDisconnect,
     REvMessage,
 }
