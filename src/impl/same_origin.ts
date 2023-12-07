@@ -47,6 +47,8 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
         // create the worker with fixed name (rope)
         const sw = new SharedWorker(RopeConfig.workerURL, 'rope')
         this.#worker = sw
+
+        // FIXME: `this` in the proxy function is not the instance of `RopeClientSameOrigin`
         sw.port.onmessage = this.#handlerProxy
 
         // notify the worker that a client has been created
