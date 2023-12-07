@@ -20,8 +20,6 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
      */
     #worker: SharedWorker
 
-    #onRejected?: VoidFunction
-
     /**
      * The proxy function to handle incoming messages from the `SharedWorker` instance.
      * @private
@@ -30,18 +28,19 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
         const rEv = ev.data
 
         if(rEv.evName === 'duplicate' && rEv.message) {
-            this.#onRejected?.()
+            this.onRejected?.()
         } else if(rEv.evName === 'message') {
             this.handler?.(rEv.message)
         }
     }
 
-    constructor(id: string, strategy: 'respect', handler: ((ev: MessageIn) => void) | null, onRejected: VoidFunction);
-    constructor(id: string, strategy: 'plunder', handler: ((ev: MessageIn) => void) | null);
-    constructor(id: string, strategy: RopeClientStrategy = 'respect', handler: ((ev: MessageIn) => void) | null = null, onRejected?: VoidFunction) {
-        super(id, strategy, handler);
-
-        this.#onRejected = onRejected
+    constructor(
+        id: string,
+        strategy: RopeClientStrategy = 'respect',
+        handler: ((ev: MessageIn) => void) | null = null,
+        onRejected: VoidFunction | null = null,
+    ) {
+        super(id, strategy, handler, onRejected);
 
         const sw = new SharedWorker(RopeConfig.workerURL)
         this.#worker = sw

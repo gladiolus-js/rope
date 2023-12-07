@@ -5,8 +5,8 @@
     "license": "MIT",
     "packageManager": "yarn@3.6.4",
     "scripts": {
-        "build": "tsup src/index.ts",
-        "test:same": "parcel __test__/index.html"
+        "dev": "vite __test__ --host",
+        "build": "tsup src/index.ts"
     },
     "main": "./bundle/index.js",
     "module": "./bundle/index.mjs",
