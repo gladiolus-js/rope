@@ -2,7 +2,7 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
     clean: true,
-    outDir: 'dist',
+    outDir: 'bundle',
     entry: [ 'src/index.ts' ],
     dts: true,
     format: [ 'cjs', 'esm' ]
