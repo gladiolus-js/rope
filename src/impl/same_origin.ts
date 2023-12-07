@@ -44,7 +44,8 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
     ) {
         super(id, strategy, handler, onRejected);
 
-        const sw = new SharedWorker(RopeConfig.workerURL, id)
+        // create the worker with fixed name (rope)
+        const sw = new SharedWorker(RopeConfig.workerURL, 'rope')
         this.#worker = sw
         sw.port.onmessage = this.#handlerProxy
 
