@@ -5,17 +5,19 @@
     "license": "MIT",
     "packageManager": "yarn@3.6.4",
     "scripts": {
-        "build": "tsup src/index.ts"
+        "build": "tsup src/index.ts",
+        "test:same": "parcel __test__/index.html"
     },
-    "main": "./dist/index.js",
-    "module": "./dist/index.mjs",
+    "main": "./bundle/index.js",
+    "module": "./bundle/index.mjs",
     "exports": {
-        "default": "./dist/index.js",
-        "require": "./dist/index.js",
-        "node": "./dist/index.js",
-        "import": "./dist/index.mjs"
+        "default": "./bundle/index.js",
+        "require": "./bundle/index.js",
+        "node": "./bundle/index.js",
+        "import": "./bundle/index.mjs"
     },
     "devDependencies": {
+        "parcel": "^2.10.3",
         "tsup": "^7.2.0",
         "typescript": "^5.2.2"
     }
