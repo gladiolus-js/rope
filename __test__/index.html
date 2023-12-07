@@ -1,15 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
     <head>
         <meta charset="UTF-8">
         <title>Rope</title>
     </head>
     <body>
         <p>This is Page 1</p>
-        <a target="_blank" href="./another_page.html">Click me to open another page</a>
 
-        <script>
+        <input id="client_id" type="text" placeholder="输入 client id">
+        <button id="connect">connect</button>
 
+        <input id="msg" type="text">
+        <button id="send">send</button>
+
+        <script type="module">
+            import { RopeConfig, RopeClientSameOrigin } from "../bundle/index.mjs"
+
+            RopeConfig.workerURL = './worker.mjs'
+
+            /**
+             * @type {RopeClientSameOrigin}
+             */
+            let client = null
+
+            const client_id = document.getElementById('client_id')
+            document.getElementById('connect').onclick = () => {
+                if (!!client) return
+                if (!client_id.value) return
+
+                client = new RopeClientSameOrigin(
+                    client_id.value,
+                    'respect',
+                    (msg) => {
+                        console.log('received:', msg)
+                    },
+                    () => {
+                        alert('rejected!')
+                    }
+                )
+            }
+
+            const msg = document.getElementById('msg')
+            document.getElementById('send').onclick = () => {
+                if (!client) return
+                if (!msg.value) return
+
+                client.send(msg.value, null)
+                console.log('sent:', msg.value)
+            }
         </script>
     </body>
 </html>
