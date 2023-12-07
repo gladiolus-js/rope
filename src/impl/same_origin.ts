@@ -1,6 +1,6 @@
 import { RopeClient, RopeClientStrategy, RopeEventTarget } from "../common/client";
 import { RopeConfig } from "../common/config";
-import { REvMessage } from "../common/event";
+import { RevCreation, REvMessage } from "../common/event";
 
 /**
  * A rope client used in the same origin situation.
@@ -31,6 +31,8 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
             this.onRejected?.()
         } else if(rEv.evName === 'message') {
             this.handler?.(rEv.message)
+        } else {
+
         }
     }
 
@@ -45,6 +47,9 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
         const sw = new SharedWorker(RopeConfig.workerURL, id)
         this.#worker = sw
         sw.port.onmessage = this.#handlerProxy
+
+        // notify the worker that a client has been created
+        sw.port.postMessage(new RevCreation(id, strategy).toJson())
     }
 
     send(message: MessageOut, to: RopeEventTarget): void {

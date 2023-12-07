@@ -1,6 +1,6 @@
-import { RopeClientId, RopeEventTarget } from "./client";
+import { RopeClientId, RopeClientStrategy, RopeEventTarget } from "./client";
 
-type RopeEventName = 'message' | 'duplicate'
+type RopeEventName = 'creation' | 'message' | 'duplicate'
 
 /**
  * An object that represents a RopeEvent
@@ -86,6 +86,18 @@ abstract class RopeEvent<InnerMessage = unknown> {
 // ========== ========== ↓ Implementations ↓ ========== ==========
 
 /**
+ * Represents a client has been created
+ *
+ * ---
+ * This is used to notify the worker that a client has been created.
+ */
+class RevCreation extends RopeEvent<RopeClientStrategy> {
+    constructor(sender: RopeClientId, strategy: RopeClientStrategy) {
+        super('creation', sender, null, strategy)
+    }
+}
+
+/**
  * Represents a message packet
  */
 class REvMessage<InnerMessage = unknown> extends RopeEvent<InnerMessage> {
@@ -112,6 +124,7 @@ export type {
 
 export {
     RopeEvent,
+    RevCreation,
     REvMessage,
     REvDuplicate,
 }
