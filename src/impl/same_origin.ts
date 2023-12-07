@@ -27,12 +27,12 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
     #handlerProxy(ev: MessageEvent<REvMessage<MessageIn>>) {
         const rEv = ev.data
 
-        if(rEv.evName === 'duplicate' && rEv.message) {
+        if(rEv.evName === 'rejection') {
             this.onRejected?.()
         } else if(rEv.evName === 'message') {
             this.handler?.(rEv.message)
         } else {
-
+            console.warn('[Rope] unknown event', rEv)
         }
     }
 
