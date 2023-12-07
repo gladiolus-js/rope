@@ -48,10 +48,26 @@ abstract class RopeClient<MessageIn = unknown, MessageOut = MessageIn> {
         this.handler = handler
     }
 
-    protected constructor(id: string, strategy: RopeClientStrategy, handler: ((ev: MessageIn) => void) | null = null) {
+    /**
+     * The handler to handle the rejection of the client.
+     * @protected
+     */
+    protected onRejected: VoidFunction | null
+
+    public handleRejection(handler: VoidFunction | null) {
+        this.onRejected = handler
+    }
+
+    protected constructor(
+        id: string,
+        strategy: RopeClientStrategy,
+        handler: ((ev: MessageIn) => void) | null,
+        onRejected: VoidFunction | null,
+    ) {
         this.id = id
         this.strategy = strategy
         this.handler = handler
+        this.onRejected = onRejected
     }
 
     /**
