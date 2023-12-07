@@ -1,6 +1,6 @@
 import { RopeClientId, RopeEventTarget } from "./client";
 
-type RopeEventName = 'message'
+type RopeEventName = 'message' | 'duplicate'
 
 /**
  * An object that represents a RopeEvent
@@ -94,6 +94,15 @@ class REvMessage<InnerMessage = unknown> extends RopeEvent<InnerMessage> {
     }
 }
 
+/**
+ * Represents a duplicate client has been detected
+ */
+class REvDuplicate extends RopeEvent<boolean> {
+    constructor(sender: RopeClientId, target: RopeEventTarget, rejected: boolean) {
+        super('duplicate', sender, target, rejected)
+    }
+}
+
 export type {
     RopeEventName,
     RopeEventObject,
@@ -104,4 +113,5 @@ export type {
 export {
     RopeEvent,
     REvMessage,
+    REvDuplicate,
 }
