@@ -16,6 +16,7 @@
     },
     "include": [
         "src/**/*.ts",
+        "cellar/**/*.ts",
         "tsup.config.ts",
         "__test__/**/*.ts",
     ]

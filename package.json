@@ -6,7 +6,7 @@
     "packageManager": "yarn@3.6.4",
     "scripts": {
         "dev": "vite __test__ --host",
-        "build": "tsup src/index.ts"
+        "build": "tsup"
     },
     "main": "./bundle/index.js",
     "module": "./bundle/index.mjs",
