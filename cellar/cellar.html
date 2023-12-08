@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Cellar</title>
+    </head>
+    <body>
+        <script>
+            if (top === self) {
+                alert('Invalid Usage')
+                window.close()
+            }
+            else {
+                window.addEventListener('message', (ev) => {
+                    try {
+                        /**
+                         * @type {{fn: 'getItem' | 'setItem' | 'removeItem' | 'clear', args: any[], proof: string}}
+                         */
+                        const { proof, fn, args } = ev.data
+                        /**
+                         * @type {Window}
+                         */
+                        const source = ev.source
+
+                        const result = window.localStorage[fn](...args)
+                        source.postMessage({ proof, result }, '*')
+                    } catch (err) {
+                        console.error('fail to execute with cfg:', ev.data)
+                    }
+                })
+            }
+        </script>
+    </body>
+</html>
