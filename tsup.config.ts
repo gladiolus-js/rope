@@ -6,7 +6,6 @@ export default defineConfig({
     // publicDir: 'static',
     entry: {
         index: 'src/index.ts',
-        cellar: 'cellar/cellar.ts',
     },
     dts: true,
     format: [ 'cjs', 'esm' ],
