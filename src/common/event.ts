@@ -10,7 +10,7 @@ type RopeEventName = 'creation' | 'message' | 'rejection'
 type RopeEventObject<MessagePayload = unknown> = {
     evName: RopeEventName
     sender: RopeClientId
-    target: RopeEventTarget
+    receiver: RopeEventTarget
     message: MessagePayload
 }
 
@@ -43,10 +43,10 @@ abstract class RopeEvent<InnerMessage = unknown> {
      */
     public readonly sender: RopeClientId
     /**
-     * The id of the target of the event, `null` if it is a broadcast event
+     * The id of the receiver of the event, `null` if it is a broadcast event
      * @default null
      */
-    public readonly target: RopeEventTarget
+    public readonly receiver: RopeEventTarget
 
     /**
      * The message in the event, `null` if there is no message
@@ -54,10 +54,10 @@ abstract class RopeEvent<InnerMessage = unknown> {
      */
     public readonly message: InnerMessage
 
-    protected constructor(evName: RopeEventName, sender: RopeClientId, target: RopeEventTarget, message: InnerMessage) {
+    protected constructor(evName: RopeEventName, sender: RopeClientId, receiver: RopeEventTarget, message: InnerMessage) {
         this.evName = evName
         this.sender = sender
-        this.target = target
+        this.receiver = receiver
         this.message = message
     }
 
@@ -76,7 +76,7 @@ abstract class RopeEvent<InnerMessage = unknown> {
         return {
             evName: this.evName,
             sender: this.sender,
-            target: this.target,
+            receiver: this.receiver,
             message: this.message,
         }
     }
@@ -101,8 +101,8 @@ class RevCreation extends RopeEvent<RopeClientStrategy> {
  * Represents a message packet
  */
 class REvMessage<InnerMessage = unknown> extends RopeEvent<InnerMessage> {
-    constructor(sender: RopeClientId, message: InnerMessage, target: RopeEventTarget = null) {
-        super('message', sender, target, message)
+    constructor(sender: RopeClientId, message: InnerMessage, receiver: RopeEventTarget = null) {
+        super('message', sender, receiver, message)
     }
 }
 
@@ -110,8 +110,8 @@ class REvMessage<InnerMessage = unknown> extends RopeEvent<InnerMessage> {
  * Represents a duplicate client has been detected and the client has been rejected will receive this event.
  */
 class REvRejection extends RopeEvent<boolean> {
-    constructor(sender: RopeClientId, target: RopeEventTarget, rejected: boolean) {
-        super('rejection', sender, target, rejected)
+    constructor(sender: RopeClientId, receiver: RopeEventTarget, rejected: boolean) {
+        super('rejection', sender, receiver, rejected)
     }
 }
 
