@@ -11,6 +11,14 @@ type RopeClientId = string
 type RopeEventTarget = RopeClientId | null
 
 /**
+ * The handler to handle incoming messages.
+ *
+ * @param msg the message to handle
+ * @param from the sender's id
+ */
+type RopeEventHandler<Message> = (msg: Message, from: RopeClientId) => void
+
+/**
  * The strategy to take when there is already a connection with the same identifier
  *
  * - `respect`: respect the existing connection and ignore the new one
@@ -38,13 +46,13 @@ abstract class RopeClient<MessageIn = unknown, MessageOut = MessageIn> {
      * The handler to handle incoming messages.
      * @protected
      */
-    protected handler: ((ev: MessageIn) => void) | null = null
+    protected handler: RopeEventHandler<MessageIn> | null = null
 
     /**
      * Register a handler to handle incoming messages. If `null` is passed, the handler will be unregistered.
      * @param handler the handler to handle incoming messages
      */
-    public handle(handler: ((ev: MessageIn) => void) | null) {
+    public handle(handler: RopeEventHandler<MessageIn> | null) {
         this.handler = handler
     }
 
@@ -61,7 +69,7 @@ abstract class RopeClient<MessageIn = unknown, MessageOut = MessageIn> {
     protected constructor(
         id: string,
         strategy: RopeClientStrategy,
-        handler: ((ev: MessageIn) => void) | null,
+        handler: RopeEventHandler<MessageIn> | null,
         onRejected: VoidFunction | null,
     ) {
         this.id = id
@@ -81,6 +89,7 @@ abstract class RopeClient<MessageIn = unknown, MessageOut = MessageIn> {
 export type {
     RopeClientId,
     RopeEventTarget,
+    RopeEventHandler,
     RopeClientStrategy
 }
 

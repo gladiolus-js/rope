@@ -1,4 +1,4 @@
-import { RopeClient, RopeClientStrategy, RopeEventTarget } from "../common/client";
+import { RopeClient, RopeClientStrategy, RopeEventHandler, RopeEventTarget } from "../common/client";
 import { RopeConfig } from "../common/config";
 import { RevCreation, REvMessage } from "../common/event";
 
@@ -30,7 +30,7 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
         if(rEv.evName === 'rejection') {
             this.onRejected?.()
         } else if(rEv.evName === 'message') {
-            this.handler?.(rEv.message)
+            this.handler?.(rEv.message, rEv.sender)
         } else {
             console.warn('[Rope] unknown event', rEv)
         }
@@ -39,7 +39,7 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
     constructor(
         id: string,
         strategy: RopeClientStrategy = 'respect',
-        handler: ((ev: MessageIn) => void) | null = null,
+        handler: RopeEventHandler<MessageIn> | null = null,
         onRejected: VoidFunction | null = null,
     ) {
         super(id, strategy, handler, onRejected);
@@ -56,6 +56,8 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
     }
 
     send(message: MessageOut, to: RopeEventTarget): void {
+        if(to === this.id) throw new Error('cannot send message to self')
+
         const ev = new REvMessage(this.id, message, to)
         this.#worker.port.postMessage(ev.toJson())
     }
