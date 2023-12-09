@@ -48,8 +48,8 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
         const sw = new SharedWorker(RopeConfig.workerURL, 'rope')
         this.#worker = sw
 
-        // FIXME: `this` in the proxy function is not the instance of `RopeClientSameOrigin`
-        sw.port.onmessage = this.#handlerProxy
+        // `this` in the proxy function is not the instance of `RopeClientSameOrigin`
+        sw.port.onmessage = ev => this.#handlerProxy(ev)
 
         // notify the worker that a client has been created
         sw.port.postMessage(new RevCreation(id, strategy).toJson())
