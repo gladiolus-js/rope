@@ -7,16 +7,22 @@
     <body>
         <p>This is Page 1</p>
 
+        <button id="stat">获取全部Client id</button>
+        <br> <br>
+
         <input id="client_id" type="text" placeholder="输入 client id">
         <button id="connect">connect</button>
+        <br> <br>
 
-        <input id="msg" type="text">
+        <input id="msg" type="text" placeholder="message">
+        <input id="send_to" type="text" placeholder="send to">
         <button id="send">send</button>
+        <br> <br>
+
+        <div id="result"></div>
 
         <script type="module">
-            import { RopeConfig, RopeClientSameOrigin } from "../bundle/index.mjs"
-
-            RopeConfig.workerURL = './worker.mjs'
+            import { RopeClientSameOrigin } from "../bundle/index.mjs"
 
             /**
              * @type {RopeClientSameOrigin}
@@ -24,6 +30,8 @@
             let client = null
 
             const client_id = document.getElementById('client_id')
+            const result = document.getElementById('result')
+
             document.getElementById('connect').onclick = () => {
                 if (!!client) return
                 if (!client_id.value) return
@@ -33,6 +41,7 @@
                     'respect',
                     (msg) => {
                         console.log('received:', msg)
+                        result.innerHTML += `<p>got: ${msg}</p>`
                     },
                     () => {
                         alert('rejected!')
@@ -41,12 +50,22 @@
             }
 
             const msg = document.getElementById('msg')
+            const send_to = document.getElementById('send_to')
             document.getElementById('send').onclick = () => {
                 if (!client) return
                 if (!msg.value) return
 
-                client.send(msg.value, null)
+                client.send(msg.value, send_to.value || null)
                 console.log('sent:', msg.value)
+            }
+
+            document.getElementById('stat').onclick = () => {
+                if (!client) return
+
+                client.stat().then((res) => {
+                    console.log('stat:', res)
+                    result.innerHTML += `<p>stat: ${JSON.stringify(res)}</p>`
+                })
             }
         </script>
     </body>

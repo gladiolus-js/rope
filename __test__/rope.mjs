@@ -9,8 +9,8 @@ const clients = new Map()
 // ========== ========== utils ========== ==========
 
 /**
- * @param evName {'rejection' | 'message'}
- * @param sender {string}
+ * @param evName {'message' | 'rejection' | 'stat'}
+ * @param sender {string | null}
  * @param receiver {string | null}
  * @param message {any}
  * @return {{evName, receiver, sender, message}}
@@ -25,6 +25,31 @@ function messageBuilder(evName, sender, receiver = null, message = null) {
 }
 
 // ========== ========== logic ========== ==========
+
+/**
+ * @param sender {string}
+ * @param receiver {string | null}
+ * @param message {any}
+ */
+function handleMessage(sender, receiver, message) {
+    // console.log(`[Rope] message received | [from: ${sender}] [to: ${receiver}] [message: ${message}]`)
+
+    // 1. the receiver is not specified -- broadcast (except the sender)
+    if (!receiver) {
+        clients.forEach((port, clientId) => {
+            if (clientId !== sender) {
+                port.postMessage(messageBuilder('message', sender, null, message))
+            }
+        })
+    }
+    // 2. the receiver is specified -- unicast
+    else {
+        const port = clients.get(receiver)
+        if (port !== undefined) {
+            port.postMessage(messageBuilder('message', sender, receiver, message))
+        }
+    }
+}
 
 /**
  * @param clientId {string}
@@ -55,27 +80,11 @@ function handleCreation(clientId, port, strategy) {
 }
 
 /**
- * @param sender {string}
- * @param receiver {string | null}
- * @param message {any}
+ * @param port {MessagePort}
  */
-function handleMessage(sender, receiver, message) {
-    console.log(`[Rope] message received | [from: ${sender}] [to: ${receiver}] [message: ${message}]`)
-    // 1. the receiver is not specified -- broadcast (except the sender)
-    if (!receiver) {
-        clients.forEach((port, clientId) => {
-            if (clientId !== sender) {
-                port.postMessage(messageBuilder('message', sender, null, message))
-            }
-        })
-    }
-    // 2. the receiver is specified -- unicast
-    else {
-        const port = clients.get(receiver)
-        if (port !== undefined) {
-            port.postMessage(messageBuilder('message', sender, receiver, message))
-        }
-    }
+function handleStat(port) {
+    const clientIds = Array.from(clients.keys())
+    port.postMessage(messageBuilder('stat', null, null, clientIds))
 }
 
 /**
@@ -93,12 +102,18 @@ function messageScheduler(msgEv) {
     const port = msgEv.target
 
     switch (innerEv.evName) {
-        case 'creation':
-            handleCreation(innerEv.sender, port, innerEv.message)
-            break
+        // ========== message re-transmission ==========
         case 'message':
             handleMessage(innerEv.sender, innerEv.receiver, innerEv.message)
             break
+        // ========== internal signal ==========
+        case 'creation':
+            handleCreation(innerEv.sender, port, innerEv.message)
+            break
+        case 'stat':
+            handleStat(port)
+            break
+        // ========== unknown ==========
         default:
             console.warn('[Rope] messageScheduler: unknown message', innerEv)
             break
