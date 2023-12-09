@@ -1,6 +1,6 @@
-import { RopeClient, RopeClientStrategy, RopeEventHandler, RopeEventTarget } from "../common/client";
+import { RopeClient, RopeClientId, RopeClientStrategy, RopeEventHandler, RopeEventTarget } from "../common/client";
 import { RopeConfig } from "../common/config";
-import { RevCreation, REvMessage } from "../common/event";
+import { RevCreation, REvMessage, RevStat } from "../common/event";
 
 /**
  * A rope client used in the same origin situation.
@@ -21,16 +21,25 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
     #worker: SharedWorker
 
     /**
+     * The handler to handle the stat response.
+     * @private
+     */
+    #stat_resolver: ((v: RopeClientId[]) => void) | null = null
+
+    /**
      * The proxy function to handle incoming messages from the `SharedWorker` instance.
      * @private
      */
     #handlerProxy(ev: MessageEvent<REvMessage<MessageIn>>) {
         const rEv = ev.data
 
-        if(rEv.evName === 'rejection') {
-            this.onRejected?.()
-        } else if(rEv.evName === 'message') {
+        if(rEv.evName === 'message') {
             this.handler?.(rEv.message, rEv.sender)
+        } else if(rEv.evName === 'rejection') {
+            this.onRejected?.()
+        } else if(rEv.evName === 'stat') {
+            this.#stat_resolver?.(rEv.message as RopeClientId[])
+            this.#stat_resolver = null
         } else {
             console.warn('[Rope] unknown event', rEv)
         }
@@ -60,6 +69,19 @@ class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends 
 
         const ev = new REvMessage(this.id, message, to)
         this.#worker.port.postMessage(ev.toJson())
+    }
+
+    /**
+     * Get the list of clients
+     */
+    stat(): Promise<RopeClientId[]> {
+        if(this.#stat_resolver !== null) throw new Error('cannot call stat() twice before the previous call is resolved')
+
+        const ref = this
+        return new Promise(resolve => {
+            ref.#stat_resolver = resolve
+            ref.#worker.port.postMessage(new RevStat(ref.id).toJson())
+        })
     }
 }
 

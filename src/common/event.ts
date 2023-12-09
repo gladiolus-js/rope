@@ -1,6 +1,11 @@
 import { RopeClientId, RopeClientStrategy, RopeEventTarget } from "./client";
 
-type RopeEventName = 'creation' | 'message' | 'rejection'
+/**
+ * Note: some of the types are one-way, meaning that they are only used in one direction.
+ * - 'creation' is used to notify the worker that a client has been created.
+ * - 'rejection' is used to notify the client that the worker has rejected the client.
+ */
+type RopeEventName = 'message' | 'creation' | 'rejection' | 'stat'
 
 /**
  * An object that represents a RopeEvent
@@ -86,6 +91,15 @@ abstract class RopeEvent<InnerMessage = unknown> {
 // ========== ========== ↓ Implementations ↓ ========== ==========
 
 /**
+ * Represents a message packet
+ */
+class REvMessage<InnerMessage = unknown> extends RopeEvent<InnerMessage> {
+    constructor(sender: RopeClientId, message: InnerMessage, receiver: RopeEventTarget = null) {
+        super('message', sender, receiver, message)
+    }
+}
+
+/**
  * Represents a client has been created
  *
  * ---
@@ -98,20 +112,11 @@ class RevCreation extends RopeEvent<RopeClientStrategy> {
 }
 
 /**
- * Represents a message packet
+ * Represents a stat request
  */
-class REvMessage<InnerMessage = unknown> extends RopeEvent<InnerMessage> {
-    constructor(sender: RopeClientId, message: InnerMessage, receiver: RopeEventTarget = null) {
-        super('message', sender, receiver, message)
-    }
-}
-
-/**
- * Represents a duplicate client has been detected and the client has been rejected will receive this event.
- */
-class REvRejection extends RopeEvent<boolean> {
-    constructor(sender: RopeClientId, receiver: RopeEventTarget, rejected: boolean) {
-        super('rejection', sender, receiver, rejected)
+class RevStat extends RopeEvent<null> {
+    constructor(sender: RopeClientId) {
+        super('stat', sender, null, null)
     }
 }
 
@@ -124,7 +129,7 @@ export type {
 
 export {
     RopeEvent,
-    RevCreation,
     REvMessage,
-    REvRejection,
+    RevCreation,
+    RevStat,
 }
