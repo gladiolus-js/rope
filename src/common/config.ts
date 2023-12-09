@@ -5,9 +5,9 @@ abstract class RopeConfig {
     /**
      * The `scriptURL` argument for `SharedWorker`.
      *
-     * @default 'TODO'
+     * @default './rope.mjs'
      */
-    public static workerURL: string = 'TODO'
+    public static workerURL: string = './rope.mjs'
 
     /**
      * The `src` attribute for the iframe.

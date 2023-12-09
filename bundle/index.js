@@ -41,19 +41,19 @@ var RopeEvent = class {
    */
   sender;
   /**
-   * The id of the target of the event, `null` if it is a broadcast event
+   * The id of the receiver of the event, `null` if it is a broadcast event
    * @default null
    */
-  target;
+  receiver;
   /**
    * The message in the event, `null` if there is no message
    * @default null
    */
   message;
-  constructor(evName, sender, target, message) {
+  constructor(evName, sender, receiver, message) {
     this.evName = evName;
     this.sender = sender;
-    this.target = target;
+    this.receiver = receiver;
     this.message = message;
   }
   /**
@@ -69,7 +69,7 @@ var RopeEvent = class {
     return {
       evName: this.evName,
       sender: this.sender,
-      target: this.target,
+      receiver: this.receiver,
       message: this.message
     };
   }
@@ -80,13 +80,13 @@ var RevCreation = class extends RopeEvent {
   }
 };
 var REvMessage = class extends RopeEvent {
-  constructor(sender, message, target = null) {
-    super("message", sender, target, message);
+  constructor(sender, message, receiver = null) {
+    super("message", sender, receiver, message);
   }
 };
 var REvRejection = class extends RopeEvent {
-  constructor(sender, target, rejected) {
-    super("rejection", sender, target, rejected);
+  constructor(sender, receiver, rejected) {
+    super("rejection", sender, receiver, rejected);
   }
 };
 
@@ -167,7 +167,7 @@ var RopeClientSameOrigin = class extends RopeClient {
     super(id, strategy, handler, onRejected);
     const sw = new SharedWorker(RopeConfig.workerURL, "rope");
     this.#worker = sw;
-    sw.port.onmessage = this.#handlerProxy;
+    sw.port.onmessage = (ev) => this.#handlerProxy(ev);
     sw.port.postMessage(new RevCreation(id, strategy).toJson());
   }
   send(message, to) {

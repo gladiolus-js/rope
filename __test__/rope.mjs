@@ -60,6 +60,7 @@ function handleCreation(clientId, port, strategy) {
  * @param message {any}
  */
 function handleMessage(sender, receiver, message) {
+    console.log(`[Rope] message received | [from: ${sender}] [to: ${receiver}] [message: ${message}]`)
     // 1. the receiver is not specified -- broadcast (except the sender)
     if (!receiver) {
         clients.forEach((port, clientId) => {
