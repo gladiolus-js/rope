@@ -9,6 +9,13 @@ type RopeClientId = string;
  */
 type RopeEventTarget = RopeClientId | null;
 /**
+ * The handler to handle incoming messages.
+ *
+ * @param msg the message to handle
+ * @param from the sender's id
+ */
+type RopeEventHandler<Message> = (msg: Message, from: RopeClientId) => void;
+/**
  * The strategy to take when there is already a connection with the same identifier
  *
  * - `respect`: respect the existing connection and ignore the new one
@@ -33,19 +40,19 @@ declare abstract class RopeClient<MessageIn = unknown, MessageOut = MessageIn> {
      * The handler to handle incoming messages.
      * @protected
      */
-    protected handler: ((ev: MessageIn) => void) | null;
+    protected handler: RopeEventHandler<MessageIn> | null;
     /**
      * Register a handler to handle incoming messages. If `null` is passed, the handler will be unregistered.
      * @param handler the handler to handle incoming messages
      */
-    handle(handler: ((ev: MessageIn) => void) | null): void;
+    handle(handler: RopeEventHandler<MessageIn> | null): void;
     /**
      * The handler to handle the rejection of the client.
      * @protected
      */
     protected onRejected: VoidFunction | null;
     handleRejection(handler: VoidFunction | null): void;
-    protected constructor(id: string, strategy: RopeClientStrategy, handler: ((ev: MessageIn) => void) | null, onRejected: VoidFunction | null);
+    protected constructor(id: string, strategy: RopeClientStrategy, handler: RopeEventHandler<MessageIn> | null, onRejected: VoidFunction | null);
     /**
      * Send a message to the target.
      * @param message the message to send
@@ -54,7 +61,12 @@ declare abstract class RopeClient<MessageIn = unknown, MessageOut = MessageIn> {
     abstract send(message: MessageOut, to: RopeEventTarget): void;
 }
 
-type RopeEventName = 'creation' | 'message' | 'rejection';
+/**
+ * Note: some of the types are one-way, meaning that they are only used in one direction.
+ * - 'creation' is used to notify the worker that a client has been created.
+ * - 'rejection' is used to notify the client that the worker has rejected the client.
+ */
+type RopeEventName = 'message' | 'creation' | 'rejection' | 'stat';
 /**
  * An object that represents a RopeEvent
  *
@@ -113,6 +125,12 @@ declare abstract class RopeEvent<InnerMessage = unknown> {
     toJson(): FromRopeEvent<InnerMessage>;
 }
 /**
+ * Represents a message packet
+ */
+declare class REvMessage<InnerMessage = unknown> extends RopeEvent<InnerMessage> {
+    constructor(sender: RopeClientId, message: InnerMessage, receiver?: RopeEventTarget);
+}
+/**
  * Represents a client has been created
  *
  * ---
@@ -122,16 +140,10 @@ declare class RevCreation extends RopeEvent<RopeClientStrategy> {
     constructor(sender: RopeClientId, strategy: RopeClientStrategy);
 }
 /**
- * Represents a message packet
+ * Represents a stat request
  */
-declare class REvMessage<InnerMessage = unknown> extends RopeEvent<InnerMessage> {
-    constructor(sender: RopeClientId, message: InnerMessage, receiver?: RopeEventTarget);
-}
-/**
- * Represents a duplicate client has been detected and the client has been rejected will receive this event.
- */
-declare class REvRejection extends RopeEvent<boolean> {
-    constructor(sender: RopeClientId, receiver: RopeEventTarget, rejected: boolean);
+declare class RevStat extends RopeEvent<null> {
+    constructor(sender: RopeClientId);
 }
 
 /**
@@ -141,7 +153,7 @@ declare abstract class RopeConfig {
     /**
      * The `scriptURL` argument for `SharedWorker`.
      *
-     * @default 'TODO'
+     * @default './rope.mjs'
      */
     static workerURL: string;
     /**
@@ -163,8 +175,12 @@ declare abstract class RopeConfig {
  */
 declare class RopeClientSameOrigin<MessageIn = unknown, MessageOut = MessageIn> extends RopeClient<MessageIn, MessageOut> {
     #private;
-    constructor(id: string, strategy?: RopeClientStrategy, handler?: ((ev: MessageIn) => void) | null, onRejected?: VoidFunction | null);
+    constructor(id: string, strategy?: RopeClientStrategy, handler?: RopeEventHandler<MessageIn> | null, onRejected?: VoidFunction | null);
     send(message: MessageOut, to: RopeEventTarget): void;
+    /**
+     * Get the list of clients
+     */
+    stat(): Promise<RopeClientId[]>;
 }
 
-export { FromRopeEvent, IntoRopeEvent, REvMessage, REvRejection, RevCreation, RopeClient, RopeClientId, RopeClientSameOrigin, RopeClientStrategy, RopeConfig, RopeEvent, RopeEventName, RopeEventObject, RopeEventTarget };
+export { FromRopeEvent, IntoRopeEvent, REvMessage, RevCreation, RevStat, RopeClient, RopeClientId, RopeClientSameOrigin, RopeClientStrategy, RopeConfig, RopeEvent, RopeEventHandler, RopeEventName, RopeEventObject, RopeEventTarget };

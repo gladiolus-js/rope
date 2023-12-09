@@ -42,19 +42,19 @@ var RopeEvent = class {
     };
   }
 };
-var RevCreation = class extends RopeEvent {
-  constructor(sender, strategy) {
-    super("creation", sender, null, strategy);
-  }
-};
 var REvMessage = class extends RopeEvent {
   constructor(sender, message, receiver = null) {
     super("message", sender, receiver, message);
   }
 };
-var REvRejection = class extends RopeEvent {
-  constructor(sender, receiver, rejected) {
-    super("rejection", sender, receiver, rejected);
+var RevCreation = class extends RopeEvent {
+  constructor(sender, strategy) {
+    super("creation", sender, null, strategy);
+  }
+};
+var RevStat = class extends RopeEvent {
+  constructor(sender) {
+    super("stat", sender, null, null);
   }
 };
 
@@ -101,9 +101,9 @@ var RopeConfig = class {
   /**
    * The `scriptURL` argument for `SharedWorker`.
    *
-   * @default 'TODO'
+   * @default './rope.mjs'
    */
-  static workerURL = "TODO";
+  static workerURL = "./rope.mjs";
   /**
    * The `src` attribute for the iframe.
    */
@@ -118,15 +118,23 @@ var RopeClientSameOrigin = class extends RopeClient {
    */
   #worker;
   /**
+   * The handler to handle the stat response.
+   * @private
+   */
+  #stat_resolver = null;
+  /**
    * The proxy function to handle incoming messages from the `SharedWorker` instance.
    * @private
    */
   #handlerProxy(ev) {
     const rEv = ev.data;
-    if (rEv.evName === "rejection") {
+    if (rEv.evName === "message") {
+      this.handler?.(rEv.message, rEv.sender);
+    } else if (rEv.evName === "rejection") {
       this.onRejected?.();
-    } else if (rEv.evName === "message") {
-      this.handler?.(rEv.message);
+    } else if (rEv.evName === "stat") {
+      this.#stat_resolver?.(rEv.message);
+      this.#stat_resolver = null;
     } else {
       console.warn("[Rope] unknown event", rEv);
     }
@@ -139,14 +147,28 @@ var RopeClientSameOrigin = class extends RopeClient {
     sw.port.postMessage(new RevCreation(id, strategy).toJson());
   }
   send(message, to) {
+    if (to === this.id)
+      throw new Error("cannot send message to self");
     const ev = new REvMessage(this.id, message, to);
     this.#worker.port.postMessage(ev.toJson());
+  }
+  /**
+   * Get the list of clients
+   */
+  stat() {
+    if (this.#stat_resolver !== null)
+      throw new Error("cannot call stat() twice before the previous call is resolved");
+    const ref = this;
+    return new Promise((resolve) => {
+      ref.#stat_resolver = resolve;
+      ref.#worker.port.postMessage(new RevStat(ref.id).toJson());
+    });
   }
 };
 export {
   REvMessage,
-  REvRejection,
   RevCreation,
+  RevStat,
   RopeClient,
   RopeClientSameOrigin,
   RopeConfig,
